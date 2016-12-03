@@ -1,5 +1,8 @@
 # Cryptonomica Desktop Application 
 
+Desktop application for Cryptonomica.net 
+
+
 
 ## To Use
 
@@ -7,7 +10,7 @@ To clone and run this repository you'll need [Git](https://git-scm.com) and [Nod
 
 ```bash
 # Clone this repository
-git clone https://github.com/Cryptonomica/Cryptonomica.DesktopApp.git
+git clone git@github.com:Cryptonomica/Cryptonomica.DesktopApp.git
 # Go into the repository
 cd Cryptonomica.DesktopApp
 # Install dependencies
