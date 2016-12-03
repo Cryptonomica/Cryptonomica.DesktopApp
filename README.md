@@ -1,0 +1,2 @@
+# Cryptonomica.DesktopApp
+Desktop application
