@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title> Media Stream Recorder Test</title>
+    <!-- Bootstrap 4 -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css"
+          integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+    <!-- JS  -->
+    <!-- https://github.com/streamproc/MediaStreamRecorder -->
+    <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"></script>
+    <!-- CSS -->
+    <style media="screen" type="text/css">
+        @keyframes blink {
+            50% {
+                border-color: rgba(255, 0, 0, 0.77);
+                background-color: rgba(255, 0, 0, 0.77);
+                color: rgba(255, 255, 255, 1);
+            }
+        }
+
+        .recording {
+            animation: blink .5s step-end infinite alternate;
+        }
+
+        .paused {
+            background-color: yellow;
+            color: black !important;
+        }
+
+        .video-status {
+            color: rgba(255, 255, 255, 0) !important;
+        }
+    </style>
+
+</head>
+
+<body>
+<!-- HTML -->
+<div class="container">
+    <div>
+        <center>
+            <h4>video from camera:</h4>
+            <p></p>
+            <div class="embed-responsive embed-responsive-16by9">
+                <!-- https://github.com/muaz-khan/RecordRTC#echo-issues -->
+                <video
+                        muted=true
+                        id="video"
+                        src=""
+                        autoplay
+                        class="embed-responsive-item">
+                </video>
+            </div>
+
+            <div id="video-status"
+                 style="height: 2.5em; width: 30%; color: rgba(255, 255, 255, 0); font-weight: bolder">
+            </div>
+
+            <button id="record" name="button" class="btn btn-secondary">start recording</button>
+            <button id="pause" name="button" class="btn btn-secondary disabled">pause recording</button>
+            <button id="resume" name="button" class="btn btn-secondary disabled">resume recording</button>
+            <button id="stop" name="button" class="btn btn-secondary disabled">stop recording</button>
+
+        </center>
+    </div>
+    <hr>
+    <div>
+        <center>
+            <h4>recorded video:</h4>
+            <div class="embed-responsive embed-responsive-16by9">
+                <video id="blob-video" controls class="embed-responsive-item"></video>
+            </div>
+            <br>
+            <button id="save" name="button" class="btn btn-secondary">save recording</button>
+        </center>
+    </div>
+    <br>
+</div>
+<!-- JS -->
+<script type="text/javascript">
+
+    var mediaConstraints = {
+        audio: true,
+        video: true
+    };
+
+    var mediaRecorder;
+
+    navigator.getUserMedia(mediaConstraints, onMediaSuccess, onMediaError);
+
+    function onMediaSuccess(stream) {
+
+        mediaRecorder = new MediaStreamRecorder(stream);
+        console.log(JSON.stringify(mediaRecorder));
+        mediaRecorder.mimeType = 'video/webm';
+        var formData; //
+
+        document.getElementById('video').setAttribute('src', window.URL.createObjectURL(stream));
+
+        mediaRecorder.ondataavailable = function (blob) {
+            // POST/PUT "Blob" using FormData/XHR2
+            var blobURL = URL.createObjectURL(blob);
+            console.log(JSON.stringify(blob));
+            console.log("blobURL: " + blobURL);
+            //
+            document.getElementById('blob-video').setAttribute('src', window.URL.createObjectURL(blob));
+            //
+            formData = new FormData();
+            // formData.append(name, value, filename);
+            // see: https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
+            var name = "file"; // The name of the field whose data is contained in value.
+            var value = blob; // The field's value. This can be a USVString or Blob (including subclasses such as File)
+            var filename = "videofile.webm";// Optional. The filename reported to the server (a USVString),
+            // when a Blob or File is passed as the second parameter. The default filename for Blob objects is "blob".
+            // The default filename for File objects is the file's filename.
+            formData.append(name, value);
+        }; // end: mediaRecorder.ondataavailable
+
+        var recordButton = document.getElementById('record');
+        recordButton.addEventListener('click', function (e) {
+            mediaRecorder.start();
+            document.getElementById('video-status').innerHTML = "RECORDING";
+
+            document.getElementById('video-status').classList.remove('paused');
+            document.getElementById('video-status').classList.add('recording');
+
+            document.getElementById('record').classList.add('disabled');
+            document.getElementById('resume').classList.add('disabled');
+            document.getElementById('pause').classList.remove('disabled');
+            document.getElementById('stop').classList.remove('disabled');
+        });
+
+        var pauseButton = document.getElementById('pause');
+        pauseButton.addEventListener('click', function (e) {
+            mediaRecorder.pause();
+
+            document.getElementById('video-status').innerHTML = "PAUSED";
+            document.getElementById('video-status').classList.remove('recording');
+            document.getElementById('video-status').classList.add('paused');
+
+            document.getElementById('pause').classList.add('disabled');
+            document.getElementById('resume').classList.remove('disabled');
+        });
+
+        var resumeButton = document.getElementById('resume');
+        resumeButton.addEventListener('click', function (e) {
+            mediaRecorder.resume();
+
+            document.getElementById('video-status').innerHTML = "RECORDING";
+            document.getElementById('video-status').classList.remove('paused');
+            document.getElementById('video-status').classList.add('recording');
+
+            document.getElementById('pause').classList.remove('disabled');
+        });
+
+        var stopButton = document.getElementById('stop');
+        stopButton.addEventListener('click', function (e) {
+            mediaRecorder.stop();
+
+            // document.getElementById('video').setAttribute('class', '');
+            document.getElementById('video-status').classList.remove('paused');
+            document.getElementById('video-status').classList.remove('recording');
+
+            document.getElementById('record').classList.remove('disabled');
+            document.getElementById('pause').classList.add('disabled');
+            document.getElementById('resume').classList.add('disabled');
+            document.getElementById('stop').classList.add('disabled');
+
+        });
+
+        var saveButton = document.getElementById('save');
+        saveButton.addEventListener('click', function (e) {
+            mediaRecorder.save();
+        });
+
+    } // end: onMediaSuccess(stream)
+
+    function onMediaError(e) {
+        console.error('media error', e);
+    } // end onMediaError
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "cryptonomica",
+  "version": "0.1.0",
+  "description": "Cryptonomica Destktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/Cryptonomica/Cryptonomica.DesktopApp",
+  "keywords": [
+    "Cryptonomica",
+    "Electron"
+  ],
+  "author": "Cryptonomica.net",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^1.4.1"
+  },
+  "dependencies": {
+    "angular-electron": "^0.2.1",
+    "angular-google-gapi": "^1.0.1"
+  }
+}
