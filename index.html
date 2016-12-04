@@ -6,15 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!--  -->
+    <!--  -->
     <!-- Insert this line above script imports  -->
     <!-- http://stackoverflow.com/a/37480521/1697878 -->
     <script>
-    if (typeof module === 'object') {
-        window.module = module;
-        module = undefined;
-    }
+        if (typeof module === 'object') {
+            window.module = module;
+            module = undefined;
+        }
     </script>
-    <link rel="shortcut icon" href="favicon.ico?" />
+    <link rel="shortcut icon" href="favicon.ico?"/>
     <!-- Octicons -->
     <!-- https://octicons.github.com/usage/ -->
     <link rel="stylesheet" href="vendors/octicons/octicons.css">
@@ -71,6 +73,12 @@
     <script src="vendors/angular-ui-date/date.js"></script>
     <!-- Puigcerber/angular-country-picker : https://github.com/Puigcerber/angular-country-picker -->
     <script src="vendors/angular-country-picker/country-picker.min.js"></script>
+    <!--  OpenPGP.js -->
+    <!--<script src="node_modules/openpgp/dist/openpgp.min.js"></script>-->
+    <script src="node_modules/openpgp/dist/openpgp.js"></script>
+    <!-- kbpgp - Keybase's PGP for JavaScript -->
+    <!-- https://github.com/keybase/kbpgp -->
+    <script src="vendors/kbpgp/kbpgp-2.0.8-min.js"></script>
     <!--  MY SCRIPTS -->
     <link rel="stylesheet" type="text/css" href="app/app.css">
     <script src="app/app.js"></script>
@@ -98,100 +106,116 @@
 </head>
 
 <body ng-cloak>
-    <div class="container-fluid">
-        <!--  HEADER   -->
-        <nav class="navbar navbar-dark bg-inverse">
-            <!--<span class="octicon octicon-shield"></span>-->
-            <a class="navbar-brand" href="#">
-                <!--Cryptonomica Key Server // Pre-alpha (v. 0.01)&nbsp;&nbsp;&nbsp;-->
-                Cryptonomica [Beta] &nbsp;&nbsp;&nbsp;
+<div class="container-fluid">
+    <!--  HEADER   -->
+    <nav class="navbar navbar-dark bg-inverse">
+        <!--<span class="octicon octicon-shield"></span>-->
+        <a class="navbar-brand" href="#">
+            <!--Cryptonomica Key Server // Pre-alpha (v. 0.01)&nbsp;&nbsp;&nbsp;-->
+            Cryptonomica [Alpha] // please login: &nbsp;&nbsp;&nbsp;
                 <span ng-show="working==true">
                 <i class="fa fa-spinner fa-pulse"></i></span></a>
-            <!--<i class="fa fa-key"></i>-->
-            <!--<span class="mega-octicon octicon-key"></span>-->
-            <ul class="nav navbar-nav pull-right">
-                <!-- KeyFinder-->
-                <li class="nav-item" ng-show="currentUser.registeredCryptonomicaUser">
-                    <a href="" ui-sref="search()" class="btn btn-secondary-outline" title="Find keys and users">
-                        <i class="fa fa-key"></i>
-                        <br>KeyFinder
-                    </a>
-                </li>
-                <!-- -->
-                <!-- Help -->
-                <li class="nav-item">
-                    <a href="https://github.com/Cryptonomica/cryptonomica/wiki" class="btn btn-secondary-outline" ng-click="help()" title="Help">
-                        <i class="fa fa-question-circle"></i>
-                        <br>Help
-                    </a>
-                </li>
-                <li class="nav-item" ng-show="gdata.getUser()">
-                    <a href="https://accounts.google.com/AccountChooser" title="Change account">{{gdata.getUser().email}}</a>
-                    <br>
-                    <a href="https://security.google.com/settings/security/permissions" title="Manage google account permissions">Change permissions</a>
-                </li>
-                <li class="nav-item" ng-show="!gdata.getUser()" ng-hide="">
-                    <button class="btn btn-secondary-outline" ng-click="login()">
-                        <i class="fa fa-sign-in"></i>
-                        <br> Login
-                    </button>
-                </li>
-                <!--  -->
-                <li class="nav-item" ng-show="gdata.getUser()">
-                    <button class="btn btn-secondary-outline" ng-click="logout()"><i class="fa fa-sign-out"></i>
-                        <br>
-                        <span>Logout</span>
-                    </button>
-                    <!--
-                    <a href="https://accounts.google.com/logout" role="button" class="btn btn-secondary-outline">
-                        <i class="fa fa-sign-out"></i>
-                        <br>
-                        <span>Logout</span>
-                    </a>
-                    -->
-                </li>
-                <li class="nav-item" ng-show="!currentUser.registeredCryptonomicaUser" ng-hide="currentUser.registeredCryptonomicaUser">
-                    <button class="btn btn-secondary-outline" ng-click="register()">
-                        <i class="fa fa-pencil-square-o"></i>
-                        <br> Register
-                    </button>
-                </li>
-                <li class="nav-item navbar-brand" ng-show="gdata.getUser()">
-                    <!--<img src="{{gapi.user.picture}}" height="57" style="">-->
-                    <img ng-src="{{userCurrentImageLink || 'https://placehold.it/57x57?text=No+Image'}}" style="height: 57px">
-                </li>
-                <!--  -->
-            </ul>
-        </nav>
-        <!--  ****  -->
-        <!---->
-        <div ui-view></div>
-        <!---->
-        <!--  FOOTER -->
-
-        <!-- <nav class="navbar navbar-light bg-faded text-muted"> -->
+        <!--<i class="fa fa-key"></i>-->
+        <!--<span class="mega-octicon octicon-key"></span>-->
+        <ul class="nav navbar-nav pull-right">
+            <!-- KeyFinder-->
+            <li class="nav-item" ng-show="currentUser.registeredCryptonomicaUser">
+                <a href="" ui-sref="search()" class="btn btn-secondary-outline" title="Find keys and users">
+                    <!-- <i class="fa fa-key"></i> -->
+                    <img src="app/img/font-awesome-svg-png/white/png/24/key.png">
+                    <br>KeyFinder
+                </a>
+            </li>
+            <!-- -->
+            <!-- Help -->
             <!--
-        <i class="fa fa-cog fa-spin" style="" title="Under Development"></i>
-        <span>2016.</span> .
+            <li class="nav-item">
+                <a href="https://github.com/Cryptonomica/cryptonomica/wiki" class="btn btn-secondary-outline" ng-click="help()" title="Help">
+                    <i class="fa fa-question-circle"></i>
+                    <br>Help
+                </a>
+            </li>
+            -->
+            <li class="nav-item" ng-show="gdata.getUser()">
+                <a href="https://accounts.google.com/AccountChooser"
+                   title="Change account">{{gdata.getUser().email}}</a>
+                <br>
+                <a href="https://security.google.com/settings/security/permissions"
+                   title="Manage google account permissions">Change permissions</a>
+            </li>
+            <li class="nav-item" ng-show="!gdata.getUser()" ng-hide="">
+                <button class="btn btn-secondary-outline" ng-click="login()">
+                    <!-- <i class="fa fa-sign-in"></i> -->
+                    <img src="app/img/font-awesome-svg-png/white/png/32/sign-in.png" class="fa-icon">
+                    <br> Login
+                </button>
+            </li>
+            <!--  -->
+            <li class="nav-item" ng-show="gdata.getUser()">
+                <button class="btn btn-secondary-outline" ng-click="logout()">
+                    <!-- <i class="fa fa-sign-out"></i> -->
+                    <img src="app/img/font-awesome-svg-png/white/png/24/sign-out.png">
+                    <br>
+                    <span>Logout</span>
+                </button>
+                <!--
+                <a href="https://accounts.google.com/logout" role="button" class="btn btn-secondary-outline">
+                    <i class="fa fa-sign-out"></i>
+                    <br>
+                    <span>Logout</span>
+                </a>
+                -->
+            </li>
+            <li class="nav-item" ng-show="!currentUser.registeredCryptonomicaUser"
+                ng-hide="currentUser.registeredCryptonomicaUser">
+                <button class="btn btn-secondary-outline" ng-click="register()">
+                    <!-- <i class="fa fa-pencil-square-o"></i> -->
+                    <img src="app/img/font-awesome-svg-png/white/png/32/pencil-square-o.png" alt="" class="fa-icon">
+                    <br> Register
+                </button>
+            </li>
+            <li class="nav-item navbar-brand" ng-show="gdata.getUser()">
+                <!--<img src="{{gapi.user.picture}}" height="57" style="">-->
+                <img ng-src="{{userCurrentImageLink || 'https://placehold.it/57x57?text=No+Image'}}"
+                     style="height: 57px">
+            </li>
+            <!--  -->
+        </ul>
+    </nav>
+    <!-- TESTING BUTTONS -->
+    <div>
+        <button>Testing buttons:</button>
+        <button ng-click="reloadElectronWindow()"> window reload</button>
+    </div>
+    <!--  ****  -->
+    <!---->
+    <div ui-view></div>
+    <!---->
+    <!--  FOOTER -->
+    <!-- <nav class="navbar navbar-light bg-faded text-muted"> -->
+    <!--
+    <i class="fa fa-cog fa-spin" style="" title="Under Development"></i>
+    <span>2016.</span> .
+    <br>
+    -->
+    <!--
+        <i class="fa fa-copyright"></i>&nbsp; 2016, The International Arbitration and Cryptography Centre Limited
         <br>
-        -->
-        <!--
-            <i class="fa fa-copyright"></i>&nbsp; 2016, The International Arbitration and Cryptography Centre Limited
-            <br>
-            <a href="#" title="Cryptonomica">Cryptonomica</a>® is <a href="https://www.ipo.gov.uk/tmcase/Results/1/UK00003127128">the registered trade mark</a> of <a href="https://cryptonomica.net">The International Arbitration and Cryptography Centre Limited</a>
-            <br> The International Arbitration and Cryptography Centre Limited is an international arbitration authority, registered in The United Kingdom, Registration No. 9392597.
-            <br> International House, 24 Holborn Viaduct, EC1A 2BN London, United Kingdom.
-            <div class="text-xs-right">
-                <i class="fa fa-envelope-o"></i>&nbsp;
-                <a href="mailto:support@cryptonomica.net">support@cryptonomica.net</a> &nbsp;| &nbsp;
-                <a href="https://cryptonomica-server.appspot.com/_ah/api/explorer">API</a> &nbsp;| &nbsp;
-                <a href="" ui-sref="privacyPolicy">Privacy Policy</a> &nbsp;|&nbsp;
-                <a href="" ui-sref="termsOfService">Terms of Service</a>
-            </div>
-        </nav>
-        -->
-        <!--  **** -->
-    </div> <!-- end of container -->
+        <a href="#" title="Cryptonomica">Cryptonomica</a>® is <a href="https://www.ipo.gov.uk/tmcase/Results/1/UK00003127128">the registered trade mark</a> of <a href="https://cryptonomica.net">The International Arbitration and Cryptography Centre Limited</a>
+        <br> The International Arbitration and Cryptography Centre Limited is an international arbitration authority, registered in The United Kingdom, Registration No. 9392597.
+        <br> International House, 24 Holborn Viaduct, EC1A 2BN London, United Kingdom.
+        <div class="text-xs-right">
+            <i class="fa fa-envelope-o"></i>&nbsp;
+            <a href="mailto:support@cryptonomica.net">support@cryptonomica.net</a> &nbsp;| &nbsp;
+            <a href="https://cryptonomica-server.appspot.com/_ah/api/explorer">API</a> &nbsp;| &nbsp;
+            <a href="" ui-sref="privacyPolicy">Privacy Policy</a> &nbsp;|&nbsp;
+            <a href="" ui-sref="termsOfService">Terms of Service</a>
+        </div>
+    </nav>
+    -->
+    <!--  **** -->
+</div>
+<!-- end of container -->
 </body>
 
 </html>

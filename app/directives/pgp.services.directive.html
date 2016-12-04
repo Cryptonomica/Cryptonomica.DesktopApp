@@ -1,0 +1,328 @@
+<script type="text/javascript">
+    // Call this code when the page is done loading.
+
+    var myPublicKey;
+    var myPrivateKey;
+
+    $(function () {
+
+        console.log("pgp service directive page is loaded");
+
+        if (!window.crypto.getRandomValues) {
+            window.alert("This browser isn't supported!");
+        }
+
+        // Generate Mockup Data
+        $("#useMockupData").click(function (event) {
+            $("#passphrase").val("very strong password");
+            $("#firstName").val("John");
+            $("#lastName").val("Doe");
+            $("#userEmail").val("john.doe@gmail.com");
+            $("#expire_in").val(1);
+            $("#messageText").val("this is a test message we want to encrypt or sign");
+        });
+
+        // Encrypt
+        $("#encrypt").click(function (event) {
+            console.log("button clicked");
+            var armoredKey = $('#pubkeyShow').val();
+            console.log("armoredKey: " + armoredKey);
+            var publicKey = openpgp.key.readArmored(armoredKey);
+
+            var message = $("#messageText").val();
+            console.log("message: " + message);
+
+            var options, encryptedRaw, encryptedASCIIarmored;
+
+            options = {
+                data: message, // input as Uint8Array (or String)
+                // passwords: ['secret stuff'],// multiple passwords possible
+                publicKeys: publicKey.keys, // <-- !!!!
+                // armor: false // don't ASCII armor (for Uint8Array output)
+            };
+
+            openpgp.encrypt(options).then(function (ciphertext) {
+                console.log(ciphertext)
+                console.log(JSON.stringify(ciphertext))
+                encryptedASCIIarmored = ciphertext.data; // '-----BEGIN PGP MESSAGE ... END PGP MESSAGE-----'
+                console.log("ciphertext.data: " + ciphertext.data)
+                $("#encryptedText").val(ciphertext.data);
+            });
+        });
+
+        // Decrypt
+        $("#decryptButton").click(function (event) {
+
+            var armoredMessage = $("#encryptedText").val();
+            var armoredPubKey = $("#pubkeyShow").val();
+            var armoredPrivKey = $("#privkeyShow").val();
+            console.log("armoredPrivKey: ");
+            console.log(armoredPrivKey);
+
+            // var privateKeyEncrypted = openpgp.key.readArmored(armoredPrivKey).keys[0];
+            var privateKeyEncrypted = openpgp.key.readArmored(armoredPrivKey).keys[0];
+            console.log("privateKeyEncrypted: ");
+            console.log(privateKeyEncrypted);
+            var passphrase = document.getElementById("passphrase").value;
+            var decrypted = privateKeyEncrypted.decrypt(passphrase); // boolean
+            var privateKeyDecrypted = privateKeyEncrypted;
+
+            var options = {
+                message: openpgp.message.readArmored(armoredMessage), // parse armored message
+                publicKeys: openpgp.key.readArmored(armoredPubKey).keys, // for verification (optional)
+                privateKey: privateKeyDecrypted // after privateKeyEncrypted.decrypt(passphrase)
+            };
+
+            openpgp.decrypt(options).then(function (plaintext) {
+
+                console.log("plaintext.data: " + plaintext.data);
+
+                $("#decryptedText").val(plaintext.data);
+
+            });
+
+        });
+
+        function makeGenerateKeysOptions() {
+            var opts = {};
+            opts.passphrase = document.getElementById("passphrase").value;
+            opts.firstName = document.getElementById("firstName").value;
+            opts.lastName = document.getElementById("lastName").value;
+            opts.name = opts.firstName + " " + opts.lastName;
+            opts.userEmail = document.getElementById("userEmail").value;
+            opts.userId = opts.name + " <" + opts.userEmail + ">";
+            opts.numBits = 1024;
+            var years = document.getElementById("expire_in").value;
+            opts.expire_in = 86400 * 365 * years; // expires in ... years
+            console.log("makeGenerateKeysOptions() :");
+            console.log(JSON.stringify(opts));
+            return opts;
+        }
+
+        function generateKeysKbpgpOptions() {
+
+            var F = kbpgp["const"].openpgp;
+
+            var genOpts = makeGenerateKeysOptions();
+
+            var opts = {
+                userid: genOpts.userId,
+                primary: {
+                    nbits: genOpts.numBits,
+                    flags: F.certify_keys | F.sign_data | F.auth | F.encrypt_comm | F.encrypt_storage,
+                    expire_in: genOpts.expire_in
+                }
+                ,
+                subkeys: [
+                    {
+                        nbits: genOpts.numBits,
+                        flags: F.sign_data,
+                        expire_in: genOpts.expire_in
+                    }
+                ]
+            };
+            console.log('generateKeysKbpgpOptions() : ');
+            console.log(JSON.stringify(opts));
+            return opts;
+        }
+
+        function generateKeysKbpgp() {
+            var genOpts = makeGenerateKeysOptions();
+            var opts = generateKeysKbpgpOptions();
+            console.log("start generating key pair...");
+            // see: https://keybase.io/kbpgp/docs/generating_a_pair
+            kbpgp.KeyManager.generate(opts, function (err, keyPairKbpgp) {
+                if (err) {
+                    console.log(err);
+                }
+                if (!err) {
+                    // sign subkeys
+                    keyPairKbpgp.sign({}, function (err) {
+
+                        console.log(keyPairKbpgp);
+
+                        // export demo; dump the private with a passphrase
+                        keyPairKbpgp.export_pgp_private({
+                            // passphrase: 'booyeah!'
+                            passphrase: genOpts.passphrase
+                        }, function (err, pgp_private) {
+                            console.log("private key: ", pgp_private);
+                            $("#privkeyShow").val(pgp_private);
+                        });
+                        //
+                        keyPairKbpgp.export_pgp_public({}, function (err, pgp_public) {
+                            console.log("public key: ", pgp_public);
+                            $('#pubkeyShow').val(pgp_public);
+                        });
+                        //
+                    });
+                }
+            });
+            /* --end- */
+        }
+
+        function generateKeysOpenPGPjs() {
+            // TODO: create
+        }
+
+        $("#generateKeysOpenPGPjs").click(function (event) {
+
+            var genOpts = makeGenerateKeysOptions();
+
+            var options = {
+                userIds: [
+                    {
+                        name: genOpts.name,
+                        email: genOpts.userEmail
+                    }
+                ], // multiple user IDs
+                numBits: 1024, // RSA key size
+                passphrase: genOpts.passphrase // protects the private key
+            };
+
+            openpgp.generateKey(options).then(function (key) {
+
+                var privkey = key.privateKeyArmored; // '-----BEGIN PGP PRIVATE KEY BLOCK ... '
+                console.log("privkey:");
+                console.log(privkey);
+                myPrivateKey = privkey;
+                $("#privkeyShow").val(myPrivateKey);
+
+                var pubkey = key.publicKeyArmored; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+
+                myPublicKey = pubkey;
+                $('#pubkeyShow').val(myPublicKey);
+                console.log("myPublicKey:");
+                console.log(myPublicKey);
+            });
+
+        }); // end #generateKeysOpenPGPjs
+
+        $("#generateKeysKbpgp").click(function (event) {
+                    generateKeysKbpgp();
+                }
+        );
+
+        $('#signMessage').click(function (event) {
+
+            var messageToSign = $("#messageText").val();
+            var privateKeyArmored = $("#privkeyShow").val();
+            var passphrase = $("#passphrase").val();
+            var privateKeyEncrypted = openpgp.key.readArmored(privateKeyArmored).keys[0];
+            privateKeyEncrypted.decrypt(passphrase); // boolean
+            var privateKeyDecrypted = privateKeyEncrypted;
+            var signObj = {
+                data: messageToSign, // cleartext input to be signed
+                privateKeys: privateKeyDecrypted, // array of keys or single key with decrypted secret key data to sign cleartext
+                armor: true // (optional) if the return value should be ascii armored or the message object
+            };
+            var signedMessageObj = {};
+            openpgp.sign(signObj).then(function (res) { //
+                // @return {Promise<String|CleartextMessage>} ASCII armored message or the message of type CleartextMessage
+                signedMessageObj = res;
+                console.log(JSON.stringify(signedMessageObj));
+                console.log(signedMessageObj.data);
+                document.getElementById("signedMessage").value = signedMessageObj.data;
+            });
+            // document.getElementById("signedMessage").value = signedMessageObj.data;
+            // $("#signedMessage").val(signedMessageObj.data.toString()); // ? does not work
+        });
+    });
+
+</script>
+<div>
+    <!--  -->
+    <h1>OpenPGP Basic Services: </h1>
+    <hr>
+    <!--  -->
+    <button id="generateKeysKbpgp">
+        Generate New Keys (Kbpgp)
+    </button>
+    <button id="generateKeysOpenPGPjs">
+        <!-- <i class="fa fa-key"></i>  -->
+        <!-- <img src="../img/font-awesome-svg-png/black/png/32/key.png" alt="" class="fa-icon"> -->
+        Generate New Keys (OpenPGP.js)
+        <!-- OpenPGP.js does not support expire_in ? -->
+    </button>
+    <button id="useMockupData">
+        Use mockup data
+    </button>
+    <!-- -->
+    <h5>Password for private key:</h5>
+    <textarea id="passphrase" ng-model="passphrase" rows="1" cols="71"
+              placeholder="this is a very secret password"></textarea>
+    <h5>First name:</h5>
+    <textarea id="firstName" ng-model="firstName" rows="1" cols="71" placeholder="John"></textarea>
+    <h5>Last name:</h5>
+    <textarea id="lastName" ng-model="lastName" rows="1" cols="71" placeholder="Doe"></textarea>
+    <h5>User email:</h5>
+    <textarea id="userEmail" ng-model="userEmail" rows="1" cols="71" placeholder="john.doe@gmail.com"></textarea>
+    <h5>Valid for (years):</h5>
+    <input id="expire_in" type="number" min="1" max="2" placeholder="1">
+    <hr>
+    <!--  -->
+    <h3>Public Key:</h3>
+    <textarea id="pubkeyShow" ng-model="pubKey" rows="15" cols="71"></textarea>
+    <br>
+    <button class="btn" ngclipboard data-clipboard-target="#pubkeyShow">Copy to clipboard</button>
+    <button class="btn" ng-click="downloadTextContent('pubkeyShow', 'my.public.key.asc')">Save as file</button>
+    <!--  -->
+    <!--  -->
+    <h3>Private Key:</h3>
+    <textarea id="privkeyShow" ng-model="privKey" rows="15" cols="71"></textarea>
+    <br>
+    <button class="btn" ngclipboard data-clipboard-target="#privkeyShow">Copy to clipboard</button>
+    <button class="btn" ng-click="downloadTextContent('privkeyShow', 'my.PRIVATE.key.asc')">Save as file</button>
+    <!--   -->
+    <!--  -->
+    <hr>
+    <h4>Use your keys:</h4>
+    <h3>
+        <!-- <i class="fa fa-file-text-o"></i>&nbsp; -->
+        <img src="app/img/font-awesome-svg-png/black/png/24/file-text-o.png" alt="">
+        Text to encrypt:</h3>
+    <textarea id="messageText" rows="3" cols="71"
+              placeholder="this is a test message we want to encrypt or sign"></textarea>
+    <br>
+    <button id="encrypt">
+        <!-- <i class="fa fa-lock"></i>&nbsp; -->
+        <img src="app/img/font-awesome-svg-png/black/png/24/lock.png" alt=""> Encrypt
+    </button>
+    <button id="signMessage">Sign</button>
+    <hr>
+    <h5>encrypted text:</h5>
+    <textarea id="encryptedText" rows="10" cols="71"></textarea>
+    <br>
+    <button class="btn" ngclipboard data-clipboard-target="#encryptedText">Copy to clipboard</button>
+    <button class="btn" ng-click="downloadTextContent('encryptedText', 'encryptedText.txt')">Save as file</button>
+    <!--   -->
+
+    <h5>signed text:</h5>
+    <textarea id="signedMessage" rows="10" cols="71"></textarea>
+    <br>
+    <button class="btn" ngclipboard data-clipboard-target="#signedMessage">Copy to clipboard</button>
+    <button class="btn" ng-click="downloadTextContent('signedMessage', 'signedMessage.txt')">Save as file</button>
+    <!--   -->
+    <br>
+    <button id="decryptButton">
+        <!-- <i class="fa fa-unlock"></i> -->
+        <img src="app/img/font-awesome-svg-png/black/png/24/unlock.png" alt="">
+        Decrypt (Private Key and its password required)
+    </button>
+    <br>
+    <textarea id="decryptedText" rows="10" cols="71"></textarea>
+    <hr>
+    <!--
+    test textarea and ng-model:
+    <br>
+    <textarea id="decryptedText" ng-model="testTextarea" rows="10" cols="71"></textarea>
+    <div>{{testTextarea}}</div>
+    -->
+    <!--
+    octicons test: <br>
+    <span class="octicon octicon-key"></span>
+    <br>
+    <span class="octicon octicon-clippy"></span>
+    -->
+</div>
+<br>

@@ -1,11 +1,8 @@
 <div>
     <!-- TESTING  -->
     <div>
-
         <div>
-            <button >Testing buttons:</button>
-            <button ng-click="reloadElectronWindow()"> window reload </button>
-            <button ng-click="logout()">Logout</button>
+            <!-- <button ng-click="logout()">Logout</button> -->
             <!-- Beta alert for web: -->
             <!--
             <div class="alert alert-warning alert-dismissible" role="alert">
@@ -37,52 +34,7 @@
     </div>
     <!-- -->
     <div class="card card-block">
-        <md ng-include="'/app/home/content.home.md'"></md>
-    </div>
-    <button class="btn btn-secondary" role="button" id="searchForNotariesBtn" ng-click="searchForNotaries()">
-        Show Cryptonomica accredited notaries
-    </button>
-    <button class="btn btn-secondary" role="button" id="clearSearchForNotariesBtn" ng-click="clearSearchForNotaries()">
-        Clear
-    </button>
-    <div class="card card-block">
-        <!-- alert -->
-        <!-- http://www.quackit.com/bootstrap/bootstrap_4/tutorial/bootstrap_alerts.cfm -->
-        <div ng-show="resp.error.message" class="alert alert-danger" role="alert">
-            {{resp.error.message}}
-        </div>
-        <!--  https://docs.angularjs.org/api/ng/directive/ngRepeat#iterating-over-object-properties
-        <div ng-repeat="obj in collection track by $id(obj)">
-                {{obj.prop}}
-            </div>
-        see: http://stackoverflow.com/questions/30907131/how-to-make-html-table-from-an-array-with-angular-js  -->
-        <table class="table table-bordered table-hover" ng-show="resp.items">
-            <!-- for Bootstrap 4 table see:
-            http://www.quackit.com/bootstrap/bootstrap_4/tutorial/bootstrap_tables.cfm -->
-            <thead class="thead-default">
-                <tr>
-                    <th>Image</th>
-                    <th>Last name</th>
-                    <th>First name</th>
-                    <th>Information</th>
-                    <th>More info</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="notaryGeneralView in resp.items">
-                    <td><img ng-src="{{notaryGeneralView.userProfileGeneralView.userCurrentImageLink}}" class="img-thumbnail" title="{{notaryGeneralView.userProfileGeneralView.lastName}}" style="height: 100px; width:auto">
-                    </td>
-                    <td class="capitalize">{{notaryGeneralView.userProfileGeneralView.lastName}}</td>
-                    <td class="capitalize">{{notaryGeneralView.userProfileGeneralView.firstName}}</td>
-                    <td>{{notaryGeneralView.notaryInfo}}</td>
-                    <td>
-                        <a href="" ui-sref="viewprofile({ userId: notaryGeneralView.userProfileGeneralView.userId })">
-                        Show Profile
-                    </a>
-                        <!--<a href="" ng-click="">show</a>-->
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- <md ng-include="'/app/home/content.home.md'"></md> -->
+        <pgp-services></pgp-services>
     </div>
 </div>

@@ -45,6 +45,8 @@ app.run([
     '$timeout',
     '$cookies',
     '$log',
+    'FileSaver',
+    'Blob',
     'BrowserWindow', // from https://github.com/ozsay/angular-electron
     'currentWindow',
     function(GAuth,
@@ -58,6 +60,8 @@ app.run([
         $timeout,
         $cookies,
         $log,
+        FileSaver,
+        Blob,
         BrowserWindow,
         currentWindow
     ) {
@@ -186,13 +190,24 @@ app.run([
         };
 
         $rootScope.reloadElectronWindow = function() {
-                $log.info(BrowserWindow);
-                $log.info(currentWindow);
-                currentWindow.reload();
-                $log.info("$rootScope.reloadElectronWindow()");
+            $log.info(BrowserWindow);
+            $log.info(currentWindow);
+            currentWindow.reload();
+            $log.info("$rootScope.reloadElectronWindow()");
 
-            }
-            // =============== Function calls:
+        };
+
+        $rootScope.downloadTextContent = function(textToSaveId, fileName) {
+            var textToSave = document.getElementById(textToSaveId).value;
+            // ng-model or fieldName.value or fieldName.value.toString
+            // does not work
+            $log.info("textToSave:");
+            $log.info(textToSave);
+            var data = new Blob([textToSave], { type: 'text/plain;charset=utf-8' });
+            FileSaver.saveAs(data, fileName);
+        };
+
+        // =============== Function calls:
 
         $rootScope.progressbar = ngProgressFactory.createInstance();
         $rootScope.progressbar.setHeight('5px'); // any valid CSS value Eg '10px', '1em' or '1%'

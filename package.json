@@ -18,6 +18,10 @@
   },
   "dependencies": {
     "angular-electron": "^0.2.1",
-    "angular-google-gapi": "^1.0.1"
+    "angular-google-gapi": "^1.0.1",
+    "font-awesome": "^4.7.0",
+    "kbpgp": "^2.0.59",
+    "octicons": "^5.0.1",
+    "openpgp": "^2.3.5"
   }
 }
