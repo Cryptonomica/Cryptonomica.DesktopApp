@@ -1,6 +1,6 @@
 {
   "name": "cryptonomica",
-  "version": "0.1.0",
+  "version": "0.1.0-dev",
   "description": "Cryptonomica Destktop Application",
   "main": "main.js",
   "scripts": {
